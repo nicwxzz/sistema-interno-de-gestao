@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sistema Interno — Acessórios Norte</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+</head>
+<body>
+
+<!-- ── Toasts ──────────────────────────────────── -->
+<div id="toasts"></div>
+
+<!-- ── Botão de tema ───────────────────────────── -->
+<button id="theme-toggle" onclick="toggleTema()" title="Alternar tema">
+  <span class="ico-moon">🌙</span>
+  <span class="ico-sun">☀️</span>
+</button>
+
+<!-- ── Modal de confirmação ────────────────────── -->
+<div class="overlay" id="overlay">
+  <div class="modal-box">
+    <h3>Confirmação</h3>
+    <p id="modal-msg">Tem certeza?</p>
+    <div class="modal-row">
+      <button class="btn btn-ghost btn-sm" onclick="fecharModal()">Cancelar</button>
+      <button class="btn btn-danger btn-sm" onclick="confirmarAcao()">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     AUTENTICAÇÃO
+════════════════════════════════════════════ -->
+<div id="auth-wrap">
+
+  <!-- Login -->
+  <div id="tela-login" class="auth-card">
+    <div class="auth-brand">
+      <h1>Acessórios Norte</h1>
+      <p>Sistema interno de gestão</p>
+    </div>
+    <h2>Entrar</h2>
+
+    <div class="field" id="f-lu">
+      <label>Usuário</label>
+      <input type="text" id="lu" placeholder="Seu usuário" autocomplete="username"
+             onkeydown="if(event.key==='Enter') login()" />
+    </div>
+    <div class="field" id="f-ls">
+      <label>Senha</label>
+      <input type="password" id="ls" placeholder="Sua senha" autocomplete="current-password"
+             onkeydown="if(event.key==='Enter') login()" />
+    </div>
+
+    <button class="btn btn-primary btn-full" id="btn-login" onclick="login()">Entrar</button>
+    <p class="auth-note">Não tem conta? <a href="#" onclick="irPara('tela-cadastro')">Cadastre-se</a></p>
+  </div>
+
+  <!-- Cadastro -->
+  <div id="tela-cadastro" class="auth-card" style="display:none">
+    <div class="auth-brand">
+      <h1>Acessórios Norte</h1>
+      <p>Sistema interno de gestão</p>
+    </div>
+    <h2>Criar conta</h2>
+
+    <div class="field">
+      <label>Usuário</label>
+      <input type="text" id="cu" placeholder="Escolha um usuário" />
+    </div>
+    <div class="field">
+      <label>Senha</label>
+      <input type="password" id="cs" placeholder="Mínimo 4 caracteres" />
+    </div>
+
+    <button class="btn btn-primary btn-full" id="btn-cadastrar" onclick="cadastrar()">Cadastrar</button>
+    <p class="auth-note" style="font-size:12px;margin-top:10px;color:var(--muted)">
+      ℹ️ Nova conta inicia como <strong>Operacional</strong>. Um administrador pode alterar o perfil depois.
+    </p>
+    <p class="auth-note">Já tem conta? <a href="#" onclick="irPara('tela-login')">Fazer login</a></p>
+  </div>
+
+</div><!-- /auth-wrap -->
+
+
+<!-- ════════════════════════════════════════════
+     APP SHELL
+════════════════════════════════════════════ -->
+<div id="app-shell" style="display:none">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sb-brand">
+      <h1>Acessórios<br>Norte</h1>
+      <p>Sistema interno</p>
+    </div>
+    <nav class="sb-nav">
+      <button class="nav-btn" id="nav-produtos" onclick="abrirTela('produtos')">
+        📦 Produtos
+      </button>
+      <button class="nav-btn" id="nav-usuarios" onclick="abrirTela('usuarios')" style="display:none">
+        👥 Usuários
+      </button>
+    </nav>
+    <div class="sb-user">
+      <div class="u-name" id="sb-nome">—</div>
+      <div class="u-role" id="sb-perfil">—</div>
+      <button class="btn-logout" onclick="logout()">↩ Sair</button>
+    </div>
+  </aside>
+
+  <!-- Conteúdo -->
+  <main class="main">
+
+    <!-- ──────────────────────────────────────────
+         TELA: PRODUTOS
+    ─────────────────────────────────────────── -->
+    <section class="screen" id="tela-produtos">
+      <div class="screen-hd">
+        <h2>Produtos</h2>
+        <p>Catálogo de produtos da loja</p>
+      </div>
+
+      <!-- Formulário (oculto para operacional) -->
+      <div class="card" id="form-produto">
+        <div class="card-title" id="form-titulo">Adicionar produto</div>
+        <div class="form-grid">
+          <div class="field" id="f-pn">
+            <label>Nome do produto *</label>
+            <input type="text" id="pn" placeholder="Ex: Colar dourado" />
+          </div>
+          <div class="field" id="f-pc">
+            <label>Categoria *</label>
+            <select id="pc">
+              <option value="">Selecione…</option>
+              <option value="Bolsas">Bolsas</option>
+              <option value="Cintos">Cintos</option>
+              <option value="Colares">Colares</option>
+              <option value="Brincos">Brincos</option>
+              <option value="Pulseiras">Pulseiras</option>
+              <option value="Óculos">Óculos</option>
+              <option value="Outros">Outros</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Preço (R$) *</label>
+            <input type="number" id="pp" placeholder="0,00" min="0" step="0.01" />
+          </div>
+          <div class="field">
+            <label>Quantidade *</label>
+            <input type="number" id="pq" placeholder="0" min="0" />
+          </div>
+          <div class="field">
+            <label>Quantidade mínima</label>
+            <input type="number" id="pqmin" placeholder="5" min="0" value="5" />
+          </div>
+          <div class="field">
+            <label>SKU</label>
+            <input type="text" id="psku" placeholder="Ex: COL-001" />
+          </div>
+          <div class="field full">
+            <label>Descrição</label>
+            <input type="text" id="pdesc" placeholder="Descrição opcional" />
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" id="btn-salvar-prod" onclick="salvarProduto()">＋ Adicionar</button>
+          <button class="btn btn-ghost" id="btn-cancelar-prod" onclick="cancelarEdicao()" style="display:none">Cancelar</button>
+        </div>
+      </div>
+
+      <!-- Filtros -->
+      <div class="card">
+        <div class="card-title">Filtros e busca</div>
+        <div class="toolbar">
+          <div class="field">
+            <label>Buscar por nome</label>
+            <input type="text" id="f-busca" placeholder="🔍 Digite…" oninput="renderProdutos()" />
+          </div>
+          <div class="field">
+            <label>Preço mínimo</label>
+            <input type="number" id="f-pmin" placeholder="R$ 0" min="0" oninput="renderProdutos()" />
+          </div>
+          <div class="field">
+            <label>Preço máximo</label>
+            <input type="number" id="f-pmax" placeholder="Sem limite" min="0" oninput="renderProdutos()" />
+          </div>
+          <div class="toolbar-end">
+            <input type="file" id="csv-input" accept=".csv" style="display:none" onchange="importarCSV(this)" />
+            <button class="btn btn-ghost btn-sm" id="btn-importar-csv" onclick="abrirImportCSV()" style="display:none">📥 Importar CSV</button>
+            <button class="btn btn-ghost btn-sm" onclick="gerarPDF()">📄 Exportar PDF</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabela -->
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th data-col="nome"       onclick="ordenar('nome')">Nome <span class="si"></span></th>
+              <th>SKU</th>
+              <th data-col="preco"      onclick="ordenar('preco')">Preço <span class="si"></span></th>
+              <th data-col="quantidade" onclick="ordenar('quantidade')">Qtd <span class="si"></span></th>
+              <th>Categoria</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-prod"></tbody>
+        </table>
+      </div>
+      <p style="margin-top:9px;font-size:12px;color:var(--muted)">
+        ⚠️ Produtos destacados estão abaixo do estoque mínimo. Clique nos cabeçalhos para ordenar.
+      </p>
+    </section>
+
+    <!-- ──────────────────────────────────────────
+         TELA: USUÁRIOS (somente admin)
+    ─────────────────────────────────────────── -->
+    <section class="screen" id="tela-usuarios">
+      <div class="screen-hd">
+        <h2>Usuários</h2>
+        <p>Gerencie os funcionários com acesso ao sistema</p>
+      </div>
+
+      <!-- Painel de edição -->
+      <div class="card" id="painel-edit-user" style="display:none">
+        <div class="card-title">Editar usuário</div>
+        <div class="form-grid">
+          <div class="field" id="f-eun">
+            <label>Nome de usuário</label>
+            <input type="text" id="eun" placeholder="Usuário" />
+          </div>
+          <div class="field" id="f-eup">
+            <label>Perfil</label>
+            <select id="eup">
+              <option value="">Selecione…</option>
+              <option value="operacional">Operacional</option>
+              <option value="tecnico">Técnico</option>
+              <option value="administrador">Administrador</option>
+            </select>
+          </div>
+          <div class="field full">
+            <label>Nova senha <span style="font-weight:400;text-transform:none">(deixe em branco para não alterar)</span></label>
+            <input type="password" id="eus" placeholder="Nova senha" />
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary btn-sm" id="btn-salvar-user" onclick="salvarUser()">💾 Salvar</button>
+          <button class="btn btn-ghost btn-sm" onclick="cancelarEditUser()">Cancelar</button>
+        </div>
+      </div>
+
+      <!-- Tabela -->
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr><th>Usuário</th><th>Perfil</th><th>Ações</th></tr>
+          </thead>
+          <tbody id="tbody-users"></tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+</div><!-- /app-shell -->
+
+<script src="js/api.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
